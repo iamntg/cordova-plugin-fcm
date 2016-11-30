@@ -7,10 +7,12 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.tspl.cross.mihr.R;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -20,6 +22,7 @@ import com.google.firebase.messaging.RemoteMessage;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMPlugin";
+    public static Integer msgcount = 0;
 
     /**
      * Called when message is received.
@@ -34,11 +37,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
         Log.d(TAG, "==> MyFirebaseMessagingService onMessageReceived");
+        Integer sentTime = 0;
 		
 		if( remoteMessage.getNotification() != null){
 			Log.d(TAG, "\tNotification Title: " + remoteMessage.getNotification().getTitle());
-			Log.d(TAG, "\tNotification Message: " + remoteMessage.getNotification().getBody());
+            Log.d(TAG, "\tNotification Message: " + remoteMessage.getNotification().getBody());
 		}
+        
+        Log.d(TAG, "\tNotification MessageId: " + remoteMessage.getMessageId());
+        Log.d(TAG, "\tNotification MessageType: " + remoteMessage.getMessageType());
+        Log.d(TAG, "\tNotification SentTime: " + String.valueOf(remoteMessage.getSentTime()));
+        String sent = String.valueOf(remoteMessage.getSentTime());
+        sent = sent.substring(5);
+        sentTime = Integer.parseInt(sent);
+
+        Log.d(TAG, "\t sentTime Type: "+sentTime);
 		
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("wasTapped", false);
@@ -50,7 +63,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 		
 		Log.d(TAG, "\tNotification Data: " + data.toString());
         FCMPlugin.sendPushPayload( data );
-        //sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData());
+        sendNotification(remoteMessage.getData().get("title"), remoteMessage.getData().get("body"), data, sentTime);
     }
     // [END receive_message]
 
@@ -59,7 +72,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      *
      * @param messageBody FCM message body received.
      */
-    private void sendNotification(String title, String messageBody, Map<String, Object> data) {
+    private void sendNotification(String title, String messageBody, Map<String, Object> data, Integer sendTime) {
         Intent intent = new Intent(this, FCMPluginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		for (String key : data.keySet()) {
@@ -68,18 +81,25 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);
 
+
+        Log.d(TAG, "\tNotification Data in sendNotification: " + data.toString());
+        Log.d(TAG, "\tNotification msgcount: " + msgcount++);
+
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(getApplicationInfo().icon)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.icon))
                 .setContentTitle(title)
                 .setContentText(messageBody)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
-                .setContentIntent(pendingIntent);
+                .setContentIntent(pendingIntent)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                    .bigText(messageBody));
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        notificationManager.notify(sendTime /* ID of notification */, notificationBuilder.build());
     }
 }

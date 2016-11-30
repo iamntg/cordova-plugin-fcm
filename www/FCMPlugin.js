@@ -27,8 +27,8 @@ FCMPlugin.prototype.onNotification = function( callback, success, error ){
 }
 // DEFAULT NOTIFICATION CALLBACK //
 FCMPlugin.prototype.onNotificationReceived = function(payload){
-	console.log("Received push notification")
-	console.log(payload)
+	console.log("FCMPlugin Received push notification");
+	console.log("FCMPlugin payload: -> "+payload);
 }
 // FIRE READY //
 exec(function(result){ console.log("FCMPlugin Ready OK") }, function(result){ console.log("FCMPlugin Ready ERROR") }, "FCMPlugin",'ready',[]);

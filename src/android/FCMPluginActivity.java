@@ -33,9 +33,15 @@ public class FCMPluginActivity extends Activity {
 			Log.d(TAG, "==> USER TAPPED NOTFICATION");
 			data.put("wasTapped", true);
 			for (String key : getIntent().getExtras().keySet()) {
-                String value = getIntent().getExtras().getString(key);
-                Log.d(TAG, "\tKey: " + key + " Value: " + value);
-				data.put(key, value);
+                if(new String("google.sent_time").equals(key)) {
+                    Long longValue = getIntent().getExtras().getLong(key);
+                    Log.d(TAG, "\tKey: " + key + " Value: " + String.valueOf(longValue));
+                    data.put(key, longValue);
+                } else {
+                    String value = getIntent().getExtras().getString(key);
+                    Log.d(TAG, "\tKey: " + key + " Value: " + value);
+                    data.put(key, value);
+                }
             }
         }
 		
